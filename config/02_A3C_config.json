@@ -1,0 +1,45 @@
+{
+  "env_name":"CartPole-v1",
+  "state_size": [2,4],
+  "action_size": 2,
+
+  "agent": {
+            "algorithm": "A3C",
+            "num_of_layers": 1,
+            "filter_size": 200,
+            "kernel_size": 3,
+            "padding": 1,
+            "activation": "relu",
+            "normalization": "False",
+            "fully_connected_size":200,
+            "ops_interval": 200,
+            "temperature_coefficient": 0.0001,
+            "show_episode": 500,
+            "lambda": 0.95
+  },
+
+
+
+
+
+  "num_of_worker": 6,
+
+  "optimizer": {
+    "learning_rate": 1e-3,
+    "weight_decay": 5e-4,
+    "eps": 0.0001,
+    "clipping":"True",
+    "max_norm":4000,
+    "rho": 0.99
+  },
+
+  "discount_factor": 0.99,
+
+  "save_path": "./save/03_A3C/",
+  "load_path":"None",
+  "tensorboard_path": "./tensorboard/03_A3C/",
+
+  "gpu_name": "cpu",
+  "inference_mode": "False",
+  "render_mode": "True"
+}

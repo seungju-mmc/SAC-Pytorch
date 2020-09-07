@@ -1,0 +1,46 @@
+{
+  "env_name":"Breakout-v0",
+  "state_size": [4,84,84],
+  "action_size": 4,
+
+  "agent": {
+            "algorithm": "A3C",
+            "num_of_layers": 3,
+            "filter_size": [32,64,64],
+            "kernel_size": [7,3,3],
+            "padding": [0,0,0],
+            "stride": [4,2,1],
+            "activation": "relu",
+            "normalization": "True",
+            "fully_connected_size":256,
+            "ops_interval": 5,
+            "temperature_coefficient": 0.01,
+            "show_episode": 10,
+            "lambda": 0.95
+  },
+
+
+
+
+
+  "num_of_worker": 6,
+
+  "optimizer": {
+    "learning_rate": 1e-3,
+    "weight_decay": 5e-4,
+    "eps": 0.0001,
+    "clipping":"False",
+    "max_norm":40,
+    "rho": 0.9
+  },
+
+  "discount_factor": 0.99,
+
+  "save_path": "./save/03_A3C/",
+  "load_path":"None",
+  "tensorboard_path": "./tensorboard/03_A3C/",
+
+  "gpu_name": "cpu",
+  "inference_mode": "False",
+  "render_mode": "False"
+}

@@ -1,0 +1,57 @@
+{
+  "env_name":"PongDeterministic-v4",
+  "state_size": [4,84,84],
+  "action_size": 4,
+
+  "agent": {
+            "network": "Conv",
+            "dueling": "None",
+            "num_of_layers": 3,
+            "filter_size": [32,64,64],
+            "kernel_size": [8,4,3],
+            "padding": [0,0,0],
+            "stride": [4,2,1],
+            "activation": "relu",
+            "normalization": "True",
+            "batch_norm": "None",
+            "fully_connected_size":256
+  },
+
+
+  "run_step": 1000000,
+  "start_step": 10000,
+  "show_episode": 5,
+
+  "size_replay_memory": 10000,
+  "batch_size": 32,
+  "learning_freq": 4,
+  "convservative_mode": "None",
+  "update_step": 1000,
+
+  "optimizer": {
+    "name":"adam",
+    "learning_rate": 0.0001,
+    "weight_decay": 5e-4,
+    "momentum": "None",
+    "eps": 0.01,
+    "alpha": 0.99,
+    "clipping": "None"
+  },
+  "discount_factor": 0.99,
+
+  "save_path": "./save/01_DQN/",
+  "tensorboard_path": "./tensorboard/01_DQN/",
+  "load_path":"None",
+
+  "is_gpu": "True",
+  "gpu_name": "cuda:0",
+  "Exploration_method": "e_greedy",
+  "epsilon_min": 0.1,
+  "epsilon": 1.0,
+  "epsilon_final":0.01,
+  "inference_mode": "None",
+  "render_mode": "True"
+
+
+
+}
