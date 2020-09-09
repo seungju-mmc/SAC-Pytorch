@@ -19,14 +19,7 @@
               "activation": "relu",
               "batch_norm": "None",
               "filter_size": [256,256,1]
-            },
-            "temperature": {
-              "num_of_layers": 1,
-              "filter_size": [1],
-              "temperature_scaling": 1,
-              "temperature_offset": 0
             }
-
   },
 
   "tau": 0.005,

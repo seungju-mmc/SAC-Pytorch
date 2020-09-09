@@ -3,5 +3,4 @@ pillow
 opencv-python
 numpy
 matplotlib
-torchsummary
 gym

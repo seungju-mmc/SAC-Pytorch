@@ -2,11 +2,6 @@ import torch
 import torch.nn as nn
 from baseline.utils import find_activation, Flatten, Nomramlization
 
-
-
-
-
-
 class Base_Agent(nn.Module):
 
     def __init__(self):

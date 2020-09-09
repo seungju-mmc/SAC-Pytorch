@@ -1,6 +1,7 @@
 {
   "env_name":"Humanoid-v2",
   "unity_env": "False",
+
   "state_size": [1,376],
   "action_size": 17,
   "seed": 0,
@@ -19,16 +20,7 @@
               "activation": "relu",
               "batch_norm": "None",
               "filter_size": [256,256,1]
-            },
-            "temperature": {
-              "num_of_layers": 1,
-              "activation": "sigmoid",
-              "batch_norm": "None",
-              "filter_size": [1],
-              "temperature_scaling": 1,
-              "temperature_offset":0
             }
-
   },
 
   "tau": 0.005,
@@ -64,7 +56,7 @@
     },
     "temperature": {
       "name": "adam",
-      "learning_rate": 3e-4,
+      "learning_rate": 1e-4,
       "weight_decay": 0,
       "clipping": "None",
       "eps": 1e-7
@@ -72,15 +64,12 @@
   },
   "discount_factor": 0.99,
 
-  "save_path": "./save/04_SAC/",
-  "tensorboard_path": "./tensorboard/04_SAC/",
-  "load_path":"None",
+  "save_path": "./save/01_SAC/",
+  "tensorboard_path": "./tensorboard/01_SAC/",
+  "load_path":"./save/01_SAC/Humanoid-v2_20200904-15-02-58.pth",
 
   "is_gpu": "True",
   "gpu_name": "cuda:0",
-  "Exploration_method": "e_greedy",
-  "epsilon_min": 0.1,
-  "epsilon": 1.0,
   "inference_mode": "False",
   "render_mode": "True"
 }

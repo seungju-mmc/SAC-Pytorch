@@ -19,16 +19,7 @@
               "activation": "relu",
               "batch_norm": "None",
               "filter_size": [256,256,1]
-            },
-            "temperature": {
-              "num_of_layers": 1,
-              "activation": "sigmoid",
-              "batch_norm": "None",
-              "filter_size": [1],
-              "temperature_scaling": 1,
-              "temperature_offset":0
             }
-
   },
 
   "tau": 0.005,
@@ -72,9 +63,6 @@
 
   "is_gpu": "True",
   "gpu_name": "cuda:0",
-  "Exploration_method": "e_greedy",
-  "epsilon_min": 0.1,
-  "epsilon": 1.0,
   "inference_mode": "False",
   "render_mode": "False"
 }

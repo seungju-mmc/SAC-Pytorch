@@ -82,6 +82,7 @@ class SAC_Agent(Base_Agent):
             self.actor =nn.Linear(in_features=shape[-1], out_features=self.action_size).to(self.device)
 
             self.policy = nn.Linear(in_features=shape[-1], out_features=self.action_size).to(self.device)
+            #self.policy = nn.Linear(in_features=shape[-1], out_features=1).to(self.device)
 
 
             self.critic_ = MLP(init_size=self.critic_init_size,
@@ -98,7 +99,8 @@ class SAC_Agent(Base_Agent):
 
             # self.Temperature = nn.Sequential()
             # self.Temperature.add_module('fc1', torch.nn.Linear(1,1))
-            self.Temperature = torch.zeros((1), requires_grad=True, device="cuda")
+#             self.Temperature = torch.zeros((1), requires_grad=True).to(self.device)
+            self.Temperature = torch.zeros((1), requires_grad=True, device=self.parms['device'])
             # def temperature_init(m):
             #     if isinstance(m, nn.Linear):
             #         torch.nn.init.uniform(m.weight, -1.3, -1.0)
@@ -140,9 +142,9 @@ class SAC_Agent(Base_Agent):
         state = state.view(self.state_size).to(self.device).float()
         actor_feature = self.actor_Feature(state)
         mean = self.actor(actor_feature)
-
-        # log_std = self.policy(actor_feature)
+        #log_std = self.policy(actor_feature)
         log_std = torch.clamp(self.policy(actor_feature),-20,2)
+
         std = log_std.exp()
 
         normal = torch.distributions.Normal(mean,std)

@@ -1,14 +1,12 @@
 import torch
 import random
 import numpy as np
-import cv2
 import gym
-import time
 
-from baseline.baseline_trainier import Policy
+from baseline.baseline_trainer import Policy
 from config_SAC.Agent import SAC_Agent
-from baseline.utils import get_optimizer,get_optimizer_weight,calculate_global_norm, clipping_by_global_norm, Exp_nn
-from torchsummary import summary
+from baseline.utils import get_optimizer,get_optimizer_weight,calculate_global_norm
+
 
 class action_space:
 
@@ -18,7 +16,6 @@ class action_space:
         self.high = 1
 
 class SAC_Trainer(Policy):
-
 
     def __init__(self, file_name):
         super(SAC_Trainer, self).__init__(file_name)
@@ -30,9 +27,10 @@ class SAC_Trainer(Policy):
             self.fixed_temperature = False
         torch.manual_seed(self.parm['seed'])
         np.random.seed(self.parm['seed'])
-        self.env.seed(self.parm['seed'])
 
         self.agent = SAC_Agent(self.agent_parms).train()
+        if self.parm['load_path'] != "None":
+            self.agent.load_state_dict(torch.load(self.parm['load_path'], map_location=self.parm['gpu_name']))
         self.target_agent = SAC_Agent(self.agent_parms)
 
         self.actor_feature , self.actor, self.policy, self.critic1, self.critic2, self.temperature = self.agent.actor_Feature,self.agent.actor,self.agent.policy,self.agent.critic, self.agent.critic2, self.agent.Temperature
@@ -46,48 +44,10 @@ class SAC_Trainer(Policy):
         self.eval_env = gym.make(self.parm['env_name'])
         self.eval_obs_set = []
 
-        if len(self.parm['state_size']) < 3:
-            zz = np.zeros((self.parm['state_size'][0] * self.parm['state_size'][1]))
-            zz = np.expand_dims(zz, 0)
-            temp = tuple([self.parm['state_size'][0] * self.parm['state_size'][1]])
-
-            print('Actor')
-            summary(self.actor_feature.to(self.gpu), temp)
-
-
-            zz = np.zeros((self.parm['state_size'][0] * self.parm['state_size'][1]+self.action_size))
-            zz = np.expand_dims(zz, 0)
-            temp = tuple([self.parm['state_size'][0] * self.parm['state_size'][1]+self.action_size])
-            print('Critic')
-            summary(self.critic1.to(self.gpu), temp)
-
-            # summary(self.temperature.to(self.gpu),tuple([1]))
-
-
-            # self.writer.add_graph(self.critic1, torch.tensor(zz).to(self.gpu).float())
-
-        else:
-            zz = np.zeros((self.parm['state_size']))
-            zz = np.expand_dims(zz, 0)
-            summary(self.agent.to(self.gpu), tuple(self.parm['state_size']))
-            self.writer.add_graph(self.agent, torch.tensor(zz).float().to(self.gpu))
-
         self.flatten_state_size = [-1,self.state_size[0] * self.state_size[1]]
 
-
-
-
-        zeta = self.agent_parms['temperature']
-
-        self.t_scaling = zeta['temperature_scaling']
-        self.t_offset = zeta['temperature_offset']
+        self.best = 3000
         self.gradient_steps = self.parm['gradient_steps']
-
-        if 'input_normalization' in self.parm.keys():
-            self.input_norm = self.parm['input_normalization']=='True'
-        else:
-            self.input_norm = False
-
 
 
     def generate_optimizer(self):
@@ -129,28 +89,18 @@ class SAC_Trainer(Policy):
 
     def target_network_update(self,step):
         if self.c_mode:
-            k = 0
             with torch.no_grad():
                 for t_pa1,t_pa2, pa1,pa2 in zip(self.target_critic1.parameters(),self.target_critic2.parameters(), self.critic1.parameters(),self.critic2.parameters()):
 
-                    if self.input_norm and k < 2:
-                        temp1 = self.tau * pa1 + (1 - self.tau) * t_pa1
-                        temp2 = self.tau * pa2 + (1 - self.tau) * t_pa2
-                    else:
-                        temp1 = self.tau * pa1 + (1 - self.tau) * t_pa1
-                        temp2 = self.tau * pa2 + (1 - self.tau) * t_pa2
+                    temp1 = self.tau * pa1 + (1 - self.tau) * t_pa1
+                    temp2 = self.tau * pa2 + (1 - self.tau) * t_pa2
                     t_pa1.copy_(temp1)
                     t_pa2.copy_(temp2)
-                    k += 1
+
     def preprocess_state_eval(self, obs):
 
         state = np.zeros(self.parm['state_size'])
 
-        if self.mode == 'Image':
-            obs = cv2.resize(obs, (self.parm['state_size'][1], self.parm['state_size'][2]))
-            obs = np.uint8(obs)
-            obs = cv2.cvtColor(obs, cv2.COLOR_BGR2GRAY)
-            obs = np.reshape(obs, (self.parm['state_size'][1], self.parm['state_size'][2]))
         self.obs_set.append(obs)
 
         for i in range(self.parm['state_size'][0]):
@@ -166,6 +116,7 @@ class SAC_Trainer(Policy):
         self.actor_optimizer.zero_grad()
         if self.fixed_temperature == False:
             self.temperature_optimizer.zero_grad()
+
     def train(self):
         mini_batch = random.sample(self.replay_memory, self.batch_size)
         self.agent = self.agent.train()
@@ -268,6 +219,9 @@ class SAC_Trainer(Policy):
                     episode_reward.append(_reward)
 
         self.writer.add_scalar('Reward', np.array(episode_reward).mean(), step)
+        if(np.array(episode_reward).mean()> self.best):
+            self.best = np.array(episode_reward).mean()
+            torch.save(self.agent.state_dict(), './save/01_SAC/best_humanoid_{}.pth'.format(str(self.best)))
 
 
     def run(self):
@@ -277,9 +231,6 @@ class SAC_Trainer(Policy):
         norms = []
         step = 0
         episode = 0
-        mode = self.parm['inference_mode'] != 'True'
-        if self.u_model:
-            env_info = self.env.reset(train_mode=mode)[self.default_brain]
 
         breakvalue = 1
         while breakvalue:
@@ -291,26 +242,20 @@ class SAC_Trainer(Policy):
             episode_entropy = []
             episode_reward = 0
 
-            if self.u_model:
-                ob = 255 * np.array(env_info.visual_observations[0])[0]
-            else:
-                ob = self.env.reset()
             self.reset()
-            state = self.preprocess_state(ob)
 
+
+            ob = self.env.reset()
+            state = self.preprocess_state(ob)
             done = False
             a = self.get_action(state)
+
             while done == False:
 
-                if self.u_model:
-                    env_info = self.env.step([a])[self.default_brain]
-                    obs = 255 * np.array(env_info.visual_observations[0])[0]
-                    reward = env_info.rewards[0]
-                    done = env_info.local_done[0]
-                else:
-                    obs, reward, done, _ = self.env.step(a)
 
+                obs, reward, done, _ = self.env.step(a)
                 step += 1
+
                 if (step+1)%1000 == 0:
                     self.eval(step)
 
@@ -318,8 +263,6 @@ class SAC_Trainer(Policy):
                 n_a = self.get_action(next_state)
                 self.append_memory((state, a, reward*self.reward_scaling, next_state, done,n_a))
                 if step >= self.start_step and self.inference_mode == False:
-                    if self.decaying_mode:
-                        self.lr_scheduler(step)
                     if step & self.parm['learning_freq'] == 0:
                         for zzz in range(self.gradient_steps):
                             loss_p,loss_c, loss_t, norm,entropy= self.train()
@@ -333,7 +276,7 @@ class SAC_Trainer(Policy):
                 a= n_a
 
                 episode_reward += reward
-                if self.parm['render_mode'] == 'True' and self.u_model == False:
+                if self.parm['render_mode'] == 'True':
                     self.env.render()
                 if step > self.start_step:
                     self.target_network_update(step)
@@ -355,7 +298,6 @@ class SAC_Trainer(Policy):
                     self.writer.add_scalar('Critic_Loss', episode_loss_c, step)
                     self.writer.add_scalar('Temperature_Loss', episode_loss_t, step)
 
-                    # self.writer.add_scalar('Reward', episode_reward, step)
                     self.writer.add_scalar('Norm', episode_norm, step)
                     self.writer.add_scalar('Alpha', alpha,step)
                     self.writer.add_scalar('Entropy', episode_entropy,step)

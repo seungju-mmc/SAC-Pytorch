@@ -117,6 +117,8 @@ def find_activation(string):
         activation = torch.nn.Tanh()
     elif string =='exp':
         activation = Exp_nn()
+    elif string =='linear':
+        activation = None
     else:
         activation =torch.nn.ReLU()
 
