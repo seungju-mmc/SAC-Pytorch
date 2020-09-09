@@ -5,6 +5,8 @@ SAC 논문을 재현한 코드이다. 해당 논문에 대한 내용은 (https:/
 
 
 1. Install mujoco
+https://github.com/openai/mujoco-py 에 들어가서 다운받으면 된다.
 
-2. 
-
+2. Result
+![](humanoid.gif)
+check the reward, loss, entropy, etc in tensorboard
