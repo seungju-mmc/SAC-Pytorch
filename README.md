@@ -9,4 +9,5 @@ https://github.com/openai/mujoco-py 에 들어가서 다운받으면 된다.
 
 2. Result
 ![](humanoid.gif)
+
 check the reward, loss, entropy, etc in tensorboard
